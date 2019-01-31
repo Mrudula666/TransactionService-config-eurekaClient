@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.cg.app.transactionservice.entity.CurrentDataSet;
 import com.cg.app.transactionservice.entity.Transaction;
+import com.cg.app.transactionservice.sender.Sender;
 import com.cg.app.transactionservice.service.TransactionService;
 
 @RestController
@@ -26,6 +27,8 @@ public class TransactionResource {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	@Autowired 
+	private Sender sender;
 
 	@PostMapping("/deposit")
 	private ResponseEntity<Transaction> deposit(@RequestBody Transaction transaction) {
@@ -38,9 +41,13 @@ public class TransactionResource {
 		Double updatedBalance = service.deposit(transaction.getAccountNumber(), transaction.getAmount(),
 				transaction.getTransactionDetails(), LocalDateTime.now(), currentBalance,
 				transaction.getTransactionType());
-		System.out.println("returnin the current balance" + updatedBalance);
-		restTemplate.put("http://localhost:1122/accounts/" + transaction.getAccountNumber() + "?currentBalance="
-				+ updatedBalance, null);
+		System.out.println("returning the current balance" + updatedBalance);
+		/*
+		 * restTemplate.put("http://localhost:1122/accounts/" +
+		 * transaction.getAccountNumber() + "?currentBalance=" + updatedBalance, null);
+		 */
+		transaction.setCurrentBalance(updatedBalance);
+		sender.send(transaction);
 		System.out.println("getting updated balance");
 		return new ResponseEntity<Transaction>(HttpStatus.CREATED);
 
@@ -58,8 +65,12 @@ public class TransactionResource {
 				transaction.getTransactionDetails(), LocalDateTime.now(), currentBalance,
 				transaction.getTransactionType());
 		System.out.println("returnin the current balance" + updatedBalance);
-		restTemplate.put("http://localhost:1122/accounts/" + transaction.getAccountNumber() + "?currentBalance="
-				+ updatedBalance, null);
+		/*
+		 * restTemplate.put("http://localhost:1122/accounts/" +
+		 * transaction.getAccountNumber() + "?currentBalance=" + updatedBalance, null);
+		 */
+		transaction.setCurrentBalance(updatedBalance);
+		sender.send(transaction);
 		System.out.println("getting updated balance");
 		return new ResponseEntity<Transaction>(HttpStatus.CREATED);
 
